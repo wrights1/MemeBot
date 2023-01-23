@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const lib = require('../lib.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -10,7 +11,9 @@ module.exports = {
 				.setDescription('text of the meme')),
 	async execute(interaction) {
         const text = interaction.options.getString('text') ?? 'No text provided';
-		console.log(interaction);
-		await interaction.reply(text);
+		download_image(text, 'memeout.png');
+		//console.log(interaction);
+		await interaction.reply({ files: ["./memeout.png"] });
 	},
 };
+
