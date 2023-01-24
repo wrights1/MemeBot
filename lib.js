@@ -5,29 +5,27 @@ const Fs = require('node:fs');
 const Path = require('node:path');
 
 async function downloadImage (url, image_path) {
-  const path = Path.resolve(__dirname, image_path)
-  const writer = Fs.createWriteStream(path)
+	const path = Path.resolve(__dirname, image_path)
+	const writer = Fs.createWriteStream(path)
 
-  const response = await Axios({
-    method: 'GET',
-    url: url,
-    responseType: 'stream'
-  })
+	const response = await Axios({
+		method: 'GET',
+		url: url,
+		responseType: 'stream'
+	})
 
-  response.data.pipe(writer)
+	response.data.pipe(writer)
 
-  return new Promise((resolve, reject) => {
-    writer.on('finish', resolve)
-	writer.on('error', reject)
-  })
+	return new Promise((resolve, reject) => {
+		writer.on('finish', resolve)
+		writer.on('error', reject)
+	})
 }
 	
 async function deepFry(sourceURL) {
-	
 	const width = 300;
 	const height = 200;
-	const text = "";
-
+	const text = "bottom text";
 	const svgImage = `
 		<svg width="${width}" height="${height}">
 			<style>
@@ -44,7 +42,7 @@ async function deepFry(sourceURL) {
 		return Sharp("source.jpeg")
 			.modulate({
 				brightness: 0.3,
-				saturation: 0.2 })
+				saturation: 5 })
 			.blur(3)
 			.sharpen({
 				sigma: 8,
