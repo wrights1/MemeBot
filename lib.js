@@ -42,7 +42,7 @@ async function deepFry(sourceURL) {
 		return Sharp("source.jpeg")
 			.modulate({
 				brightness: 0.3,
-				saturation: 5 })
+				saturation: 0.5 })
 			.blur(3)
 			.sharpen({
 				sigma: 8,
