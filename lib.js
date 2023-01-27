@@ -23,18 +23,18 @@ async function downloadImage (url, image_path) {
 }
 	
 async function deepFry(sourceURL) {
-	const width = 300;
-	const height = 200;
-	const text = "bottom text";
-	const svgImage = `
-		<svg width="${width}" height="${height}">
-			<style>
-			.title { fill: #001; font-size: 50px; font-weight: bold;}
-			</style>
-			<text x="50%" y="50%" text-anchor="middle" class="title">${text}</text>
-		</svg>
-		`;
-	const svgBuffer = Buffer.from(svgImage);
+	// const width = 300;
+	// const height = 200;
+	// const text = "bottom text";
+	// const svgImage = `
+	// 	<svg width="${width}" height="${height}">
+	// 		<style>
+	// 		.title { fill: #001; font-size: 50px; font-weight: bold;}
+	// 		</style>
+	// 		<text x="50%" y="50%" text-anchor="middle" class="title">${text}</text>
+	// 	</svg>
+	// 	`;
+	// const svgBuffer = Buffer.from(svgImage);
 
 	try {
 		console.log('twerking up image');
@@ -53,11 +53,11 @@ async function deepFry(sourceURL) {
 				y3: 40 })
 			.gamma(3)
 			.normalise()
-			.composite([{
-				input: svgBuffer,
-				top: 0,
-				left: 0,
-			} ])
+			// .composite([{
+			// 	input: svgBuffer,
+			// 	top: 0,
+			// 	left: 0,
+			// } ])
 		.toFile('output.jpeg');
 	} catch (error) {
 		console.log(error);
