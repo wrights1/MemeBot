@@ -63,6 +63,18 @@ client.on('messageCreate', async message => {
 		} else {
 			message.reply('Gotta use this in reply to an image message');
 		}
+	} else if (message.content.toLowerCase().startsWith('!makememe')) {
+		if (message.reference) {
+			message.fetchReference().then(function(replyMessage) {
+				var sourceImageURL = replyMessage.attachments.size > 0 ? replyMessage.attachments.first()?.url : null;
+				makeMemeAndReply(message, sourceImageURL);				
+			});
+		} else if (message.attachments.size > 0) {
+			var sourceImageURL = message.attachments.size > 0 ? message.attachments.first()?.url : null
+			makeMemeAndReply(message, sourceImageURL);
+		} else {
+			message.reply('Gotta use this in reply to an image or when sending an image');
+		}
 	}
 });
 
@@ -74,5 +86,18 @@ async function deepFryAndReply(message, sourceImageURL){
 		message.reply({ files: ["output.jpeg"] })
 	} else {
 		message.reply('Couldn\'t find image to deep fry');
+	}
+}
+
+async function makeMemeAndReply(message, sourceImageURL){
+	if (sourceImageURL) {
+		lib.deleteImgFiles('img');
+		const channel = client.channels.cache.get(message.channelId);
+		channel.send('cooking meme');
+		const outputFilename = await lib.makeMeme(message.content, sourceImageURL);
+		console.log('back from lib.makeMeme: ' + outputFilename);
+		message.reply({ files: [outputFilename] });
+	} else {
+		message.reply('Couldn\'t find image to create meme with');
 	}
 }
