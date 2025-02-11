@@ -69,16 +69,19 @@ async function makeMeme(message, sourceURL){
 		const maxTextWidth = 0.8 * canvas.width;
 		const lineHeight = 1.2 * fontSize; // Adjust line height as needed
 
-		const topText=message.match(/t\=\"(.*)\" b/)[1];
-		const bottomText=message.match(/b\=\"(.*)\"/)[1];
+		const topText= safeRegexMatch('t\=(.*) b\=', message);
+		const bottomText= safeRegexMatch('b\=(.*)', message);
+
 		console.log(topText);
 		console.log(bottomText);
 
-		wrapText(ctx, topText.toUpperCase(), x, topY, maxTextWidth, lineHeight);
-		wrapText(ctx, bottomText.toUpperCase(), x, bottomY, maxTextWidth, lineHeight);
+		if (topText !== null && bottomText !== null ){
+			wrapText(ctx, topText.toUpperCase(), x, topY, maxTextWidth, lineHeight);
+			wrapText(ctx, bottomText.toUpperCase(), x, bottomY, maxTextWidth, lineHeight);
+		}
 		
 		// Save the canvas as an image file
-		const outputImagePath = inputImagePath.replace('in','out')
+		const outputImagePath = inputImagePath.replace('in','out') 
 		const buffer = canvas.toBuffer('image/png');
 		require('fs').writeFileSync(outputImagePath, buffer);
 
@@ -89,6 +92,17 @@ async function makeMeme(message, sourceURL){
 				throw new Error(error);
 		}
 }
+
+function safeRegexMatch(pattern, text) {
+	try {
+	  const regex = new RegExp(pattern); // Compile the regex
+	  const match = text.match(regex); // Execute the match
+	  return match ? match.slice(1)[0] : [];
+	} catch (error) {
+	  console.error("Invalid regular expression:", error.message);
+	  return null;
+	}
+  }
 
 // Wrap text function
 function wrapText(context, text, x, y, maxWidth, lineHeight) {

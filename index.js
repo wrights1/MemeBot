@@ -53,7 +53,11 @@ client.on('messageCreate', async message => {
 		if (message.reference) {
 			message.fetchReference().then(function(replyMessage) {
 				console.log('reply url get');
-				sourceImageURL = replyMessage.attachments.size > 0 ? replyMessage.attachments.first()?.url : null;
+				if(replyMessage.embeds.length !== 0 && replyMessage.embeds[0].data.type === 'image'){
+					sourceImageURL = replyMessage.embeds[0].data.url;
+				} else {
+					sourceImageURL = replyMessage.attachments.size > 0 ? replyMessage.attachments.first()?.url : null;
+				}
 				deepFryAndReply(message, sourceImageURL);				
 			});
 		} else if (message.attachments.size > 0) {
