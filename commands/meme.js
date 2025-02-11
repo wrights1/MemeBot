@@ -33,9 +33,9 @@ module.exports = {
 		}
 		if (interaction.options.getBoolean('deepfry')){
 			await lib.deepFry(outputFilename);
-			await interaction.reply({ files: ['output.jpeg'] });
+			await interaction.reply({ files: ['output.jpeg'], ephemeral: true });
 		} else {
-			await interaction.reply({ files: [outputFilename] });
+			await interaction.reply({ files: [outputFilename], ephemeral: true });
 		}
 	},
 };
