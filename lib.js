@@ -75,8 +75,11 @@ async function makeMeme(message, sourceURL){
 		console.log(topText);
 		console.log(bottomText);
 
-		if (topText !== null && bottomText !== null ){
+		if (topText !== null) {
 			wrapText(ctx, topText.toUpperCase(), x, topY, maxTextWidth, lineHeight);
+		}
+			
+		if ( bottomText !== null ){
 			wrapText(ctx, bottomText.toUpperCase(), x, bottomY, maxTextWidth, lineHeight);
 		}
 		
@@ -97,7 +100,7 @@ function safeRegexMatch(pattern, text) {
 	try {
 	  const regex = new RegExp(pattern); // Compile the regex
 	  const match = text.match(regex); // Execute the match
-	  return match ? match.slice(1)[0] : [];
+	  return match ? match.slice(1)[0] : null;
 	} catch (error) {
 	  console.error("Invalid regular expression:", error.message);
 	  return null;
