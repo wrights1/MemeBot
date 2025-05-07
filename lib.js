@@ -1,18 +1,19 @@
-const Axios = require('axios');
-
-const Fs = require('node:fs');
+const axios = require('axios');
+const fs = require('node:fs');
 const Path = require('node:path');
+const { AttachmentBuilder } = require('discord.js'); 
+const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB in bytes
 
 const { registerFont, createCanvas, loadImage } = require('canvas');
 registerFont('impact.ttf', { family: 'Impact' })
 
-const Sharp = require('sharp');
+const sharp = require('sharp');
 
 async function downloadImage (url, image_path) {
 	const path = Path.resolve(__dirname, image_path)
-	const writer = Fs.createWriteStream(path)
+	const writer = fs.createWriteStream(path)
 
-	const response = await Axios({
+	const response = await axios({
 		method: 'GET',
 		url: url,
 		responseType: 'stream'
@@ -27,21 +28,21 @@ async function downloadImage (url, image_path) {
 }
 
 async function deleteImgFiles(directory){
-	Fs.readdir(directory, (err, files) => {
+	fs.readdir(directory, (err, files) => {
 		if (err) throw err;
-	  
+		
 		for (const file of files) {
-		  Fs.unlink(Path.join(directory, file), (err) => {
+			fs.unlink(Path.join(directory, file), (err) => {
 			if (err) throw err;
-		  });
+			});
 		}
-	  });
+		});
 }
 
 async function makeMeme(message, sourceURL){
 	try {
 		// Load the image
-		const inputImagePath = 'img/input' +  Date.now() +'.jpeg';
+		const inputImagePath = 'img/input' +	Date.now() +'.jpeg';
 		await downloadImage(sourceURL, inputImagePath);
 		const image = await loadImage(inputImagePath);
 		console.log('image.width = ' + image.width);
@@ -98,14 +99,14 @@ async function makeMeme(message, sourceURL){
 
 function safeRegexMatch(pattern, text) {
 	try {
-	  const regex = new RegExp(pattern); // Compile the regex
-	  const match = text.match(regex); // Execute the match
-	  return match ? match.slice(1)[0] : null;
+		const regex = new RegExp(pattern); // Compile the regex
+		const match = text.match(regex); // Execute the match
+		return match ? match.slice(1)[0] : null;
 	} catch (error) {
-	  console.error("Invalid regular expression:", error.message);
-	  return null;
+		console.error("Invalid regular expression:", error.message);
+		return null;
 	}
-  }
+	}
 
 // Wrap text function
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -128,33 +129,65 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
 	context.strokeText(line, x, y);
 }
 
-async function deepFry(sourceURL) {
-	try {
-		console.log('twerking up image');
-		let imgFilename = sourceURL;
-		if ( !sourceURL.startsWith('img/')){ //if sourceURL starts with "img/" then it is a local file passed in by the meme function, not a URL
-			imgFilename = 'source.jpeg';
-			await downloadImage(sourceURL, 'source.jpeg');
-		}
-		return Sharp(imgFilename)
-			.modulate({
-				brightness: 0.3,
-				saturation: 0.5 })
-			.blur(3)
-			.sharpen({
-				sigma: 8,
-				m1: 40,
-				m2: 40,
-				x1: 20,
-				y2: 40,
-				y3: 40 })
-			.gamma(3)
-			.normalise()
-		.toFile('output.jpeg');
-	} catch (error) {
-		console.log(error);
-		throw new Error(error);
+async function processImageStream(sourceUrl) {
+	const response = await axios({
+		method: 'get',
+		url: sourceUrl,
+		responseType: 'stream',
+	});
+	
+	const transformer = sharp()
+		.modulate({
+			brightness: 0.3,
+			saturation: 0.5 })
+		.blur(3)
+		.sharpen({
+			sigma: 8,
+			m1: 40,
+			m2: 40,
+			x1: 20,
+			y2: 40,
+			y3: 40 })
+		.gamma(3)
+		.normalise();
+	
+	const imageBuffer = await new Promise((resolve, reject) => {
+		const chunks = [];
+		response.data.pipe(transformer)
+		.on('data', chunk => chunks.push(chunk))
+		.on('end', () => resolve(Buffer.concat(chunks)))
+		.on('error', reject);
+	});
+	
+	return imageBuffer;
 	}
-}
+	
+	async function deepFry(message, sourceUrl) {
+		try {
+			const imageBuffer = await processImageStream(sourceUrl);
+			const imageSize = imageBuffer.length; // Size in bytes
+		
+			console.log('Processed Image Size:', imageSize / 1024 / 1024, 'MB');
+		
+			if (imageSize > MAX_FILE_SIZE) {	
+				const smallerImageBuffer = await sharp(imageBuffer)
+					.resize(2048, 2048, {fit : 'inside'})
+					.toBuffer();
+		
+				if (smallerImageBuffer.length <= MAX_FILE_SIZE) {
+					const attachment = new AttachmentBuilder(smallerImageBuffer, { name: 'image.jpg' });
+					await message.reply({content: 'Sorry for the wait, image was over 8MB and had to be resized to send', files: [attachment] });
+				} else {
+					await message.reply('Sorry, I don\'t have Nitro so the image is too large to send.');
+				}
+			} else {
+				const attachment = new AttachmentBuilder(imageBuffer, { name: 'image.jpg' });
+				await message.reply({ files: [attachment] });
+			}
+		} catch (error) {
+			console.error('Error processing image:', error);
+			message.reply('There was an error processing the image :(');
+		}
+	}
 	
 module.exports = {downloadImage, deepFry, makeMeme, deleteImgFiles};

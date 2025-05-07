@@ -85,9 +85,8 @@ client.on('messageCreate', async message => {
 async function deepFryAndReply(message, sourceImageURL){
 	if (sourceImageURL) {
 		const channel = client.channels.cache.get(message.channelId);
-		channel.send('revving up fryers .... :smirk:');
-		await lib.deepFry(sourceImageURL)
-		message.reply({ files: ["output.jpeg"] })
+		channel.send('revving up fryers .... :smirk: (big images might take a min)');
+		await lib.deepFry(message, sourceImageURL);
 	} else {
 		message.reply('Couldn\'t find image to deep fry');
 	}
